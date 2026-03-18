@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Marcelo Gomes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg:         #F5F5F5;
+      --bg-white:   #FFFFFF;
+      --text:       #0A0A0A;
+      --text-muted: #888888;
+      --navy:       #021A2E;
+      --cyan:       #00C8C8;
+      --border:     rgba(0,0,0,0.09);
+      --nav-h:      52px;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans:  'Instrument Sans', system-ui, sans-serif;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body {
+      background: var(--bg-white);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a      { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+
+    /* ── Nav ── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--nav-h);
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+    }
+    .nav-logo {
+      font-family: var(--sans); font-size: 14px; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--text);
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      font-size: 13px; font-weight: 400; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-muted); transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+    /* ── About ── */
+    #about {
+      padding-top: calc(var(--nav-h) + 80px);
+      padding-bottom: 100px;
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+    .about-inner { max-width: 1100px; margin: 0 auto; }
+    .about-label {
+      font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 28px;
+    }
+    .about-bio {
+      font-size: 24px; font-weight: 400; line-height: 1.75;
+      color: rgba(10,10,10,0.75); max-width: 860px;
+    }
+    .about-bio strong { color: var(--text); font-weight: 600; }
+
+    .about-caps {
+      margin-top: 60px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .about-caps-label {
+      font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 24px;
+    }
+    .about-caps-list { display: flex; flex-wrap: wrap; align-items: center; }
+    .about-cap-item { font-size: 17px; font-weight: 400; color: var(--text); padding: 8px 0; }
+    .about-cap-sep { width: 1px; height: 16px; background: var(--border); margin: 0 24px; flex-shrink: 0; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--bg);
+      padding: 52px 32px 40px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 64px;
+    }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a {
+      font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+    .footer-scroll {
+      font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.2s;
+    }
+    .footer-scroll:hover { color: var(--text); }
+    .footer-name {
+      font-family: var(--serif); font-weight: 600;
+      font-size: clamp(64px, 13vw, 210px);
+      line-height: 0.88; letter-spacing: -0.03em;
+      color: var(--text); white-space: nowrap; overflow: hidden;
+    }
+    .footer-name .cur { display: inline-block; color: var(--cyan); animation: blink 1.1s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .footer-copy { margin-top: 18px; font-size: 14px; letter-spacing: 0.08em; color: var(--text-muted); }
+
+    /* ── Admin toggle ── */
+    #admin-btn {
+      position: fixed; bottom: 22px; right: 22px; z-index: 200;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--text); border: 1px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bg-white); opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, background 0.2s;
+    }
+    #admin-btn.show { opacity: 1; pointer-events: all; }
+    #admin-btn:hover { background: var(--navy); }
+    #admin-btn.active { background: var(--cyan); color: #000; }
+
+    /* ── Edit toolbar ── */
+    #edit-bar {
+      position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 99;
+      background: var(--navy); padding: 8px 32px;
+      display: none; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(0,200,200,0.2);
+    }
+    .edit-mode #edit-bar { display: flex; }
+    .bar-label { flex: 1; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(0,200,200,0.65); }
+    .bar-btn {
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.7); padding: 5px 14px; border-radius: 1px;
+      font-family: var(--sans); font-weight: 400; transition: background 0.2s;
+    }
+    .bar-btn:hover { background: rgba(255,255,255,0.1); }
+    .bar-btn.done { background: rgba(0,200,200,0.15); color: var(--cyan); }
+    .bar-btn.done:hover { background: rgba(0,200,200,0.25); }
+
+    /* ── Modal / overlay ── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 6px;
+      width: min(520px, 94vw); max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+    }
+    .modal-head-title { font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+    .modal-x { font-size: 20px; color: var(--text-muted); line-height: 1; padding: 0 4px; }
+    .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+    .fg { display: flex; flex-direction: column; gap: 6px; }
+    .fl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+    .fi {
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 9px 12px; font-size: 14px; font-family: var(--sans);
+      color: var(--text); background: var(--bg); outline: none; width: 100%;
+    }
+    .fi:focus { border-color: var(--cyan); }
+    textarea.fi { resize: vertical; min-height: 100px; }
+    .btn-cancel { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 16px; }
+    .btn-save {
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+      background: var(--text); color: #fff; padding: 9px 22px; border-radius: 3px;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: var(--navy); }
+
+    @media (max-width: 600px) {
+      #nav { padding: 0 18px; }
+      #about { padding-left: 18px; padding-right: 18px; }
+      footer { padding: 40px 18px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo" href="index.html">MG</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html" class="active">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<section id="about">
+  <div class="about-inner">
+    <p class="about-label">About</p>
+    <p class="about-bio" id="about-bio">Loading…</p>
+    <div class="about-caps">
+      <p class="about-caps-label">Capabilities</p>
+      <div class="about-caps-list">
+        <span class="about-cap-item">Brand Campaigns</span>
+        <span class="about-cap-sep"></span>
+        <span class="about-cap-item">Short Films</span>
+        <span class="about-cap-sep"></span>
+        <span class="about-cap-item">UGC Ads</span>
+        <span class="about-cap-sep"></span>
+        <span class="about-cap-item">Music Videos</span>
+        <span class="about-cap-sep"></span>
+        <span class="about-cap-item">Branded Series</span>
+        <span class="about-cap-sep"></span>
+        <span class="about-cap-item">Visual Direction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="footer-top">
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="footer-scroll" onclick="window.scrollTo({top:0,behavior:'smooth'})">Scroll to top ↑</button>
+  </div>
+  <div class="footer-name" id="footer-name">Marcelo Gomes<span class="cur">_</span></div>
+  <p class="footer-copy" id="footer-copy">Marcelo Gomes © 2026 · Europe</p>
+</footer>
+
+<button id="admin-btn" title="Edit (Shift+E)" onclick="toggleEdit()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+</button>
+
+<div id="edit-bar">
+  <span class="bar-label">Edit Mode — Shift+E to toggle</span>
+  <button class="bar-btn" onclick="openSettings()">Edit Bio</button>
+  <button class="bar-btn done" onclick="toggleEdit()">Done Editing</button>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="set-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">Edit About</span>
+      <button class="modal-x" onclick="closeOverlay('set-overlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Your Name</label><input class="fi" id="s-name" type="text"></div>
+      <div class="fg"><label class="fl">Bio (HTML allowed)</label><textarea class="fi" id="s-bio" rows="8"></textarea></div>
+      <div class="fg"><label class="fl">Footer Copyright</label><input class="fi" id="s-copy" type="text"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeOverlay('set-overlay')">Cancel</button>
+      <button class="btn-save" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK2 = 'mg_settings_v2';
+const DEF_SETTINGS = {
+  name:     'Marcelo Gomes',
+  eyebrow:  'AI Artist · Visual Storytelling · Europe-based',
+  tagline:  'Visual storytelling, built with AI. Based in Europe.',
+  bio:      'I\'ve produced over <strong>100 short-form video ads and UGC content for Meta</strong> — and the two things clients say most are "I didn\'t know AI could do this" and "how did you make it so fast?"<br><br>That\'s the point.<br><br>AI video isn\'t a shortcut. In the right hands, it\'s a production studio — one that moves at the speed of a good idea. I started in creative work and got pulled deeper into AI as the tools got serious. Now I build brand campaigns, short films, UGC ads, and visual stories for brands, agencies, and creators who need content that performs.<br><br>Based in Europe. Working globally. No crew, no location fees, no six-week timelines.<br><br><strong>Just send me the brief.</strong>',
+  contact:  'I take on a limited number of projects at a time — so when I\'m in, I\'m <strong>fully in</strong>.<br><br>Reach out if you\'re building something worth making.',
+  heroImage:'',
+  email:    'marcelodelvio@gmail.com',
+  copy:     'Marcelo Gomes © 2026 · Europe',
+  linkedin: 'https://www.linkedin.com/in/marcelo-gomes-6b9788258/',
+  instagram:'https://www.instagram.com/marcelo_delvio',
+  youtube:  'https://www.youtube.com/@marcelod%C3%A9lvio',
+};
+
+let settings  = JSON.parse(localStorage.getItem(SK2) || 'null') || DEF_SETTINGS;
+let editMode  = false;
+
+function el(id) { return document.getElementById(id); }
+
+function applySettings() {
+  document.title = 'About — ' + settings.name;
+  el('about-bio').innerHTML    = settings.bio;
+  el('footer-name').innerHTML  = settings.name + '<span class="cur">_</span>';
+  el('footer-copy').textContent = settings.copy;
+}
+
+function openSettings() {
+  el('s-name').value = settings.name;
+  el('s-bio').value  = settings.bio;
+  el('s-copy').value = settings.copy;
+  openOverlay('set-overlay');
+}
+
+function saveSettings() {
+  settings.name = el('s-name').value.trim() || settings.name;
+  settings.bio  = el('s-bio').value;
+  settings.copy = el('s-copy').value.trim() || settings.copy;
+  localStorage.setItem(SK2, JSON.stringify(settings));
+  applySettings();
+  closeOverlay('set-overlay');
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  el('admin-btn').classList.toggle('active', editMode);
+}
+
+function openOverlay(id)  { el(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeOverlay(id) { el(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+function initAdminReveal() {
+  const btn = el('admin-btn');
+  let t = null;
+  const zone = Object.assign(document.createElement('div'), {
+    style: 'position:fixed;bottom:0;right:0;width:88px;height:88px;z-index:199;pointer-events:all;'
+  });
+  document.body.appendChild(zone);
+  zone.addEventListener('mouseenter', () => { t = setTimeout(() => btn.classList.add('show'), 1800); });
+  zone.addEventListener('mouseleave', () => { clearTimeout(t); if (!editMode) btn.classList.remove('show'); });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.key === 'E') { el('admin-btn').classList.add('show'); toggleEdit(); }
+  if (e.key === 'Escape') closeOverlay('set-overlay');
+});
+el('set-overlay').addEventListener('click', e => { if (e.target === el('set-overlay')) closeOverlay('set-overlay'); });
+
+applySettings();
+initAdminReveal();
+</script>
+</body>
+</html>
