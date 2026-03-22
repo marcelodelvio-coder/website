@@ -206,11 +206,10 @@
     .footer-scroll:hover { color: var(--text); }
     .footer-name {
       font-family: var(--serif); font-weight: 600;
-      font-size: clamp(64px, 13vw, 210px);
+      font-size: clamp(28px, 8vw, 160px);
       line-height: 0.88; letter-spacing: -0.03em;
-      color: var(--text); white-space: nowrap; overflow: hidden;
+      color: var(--text);
     }
-    .footer-name .cur { display: inline-block; color: var(--cyan); animation: blink 1.1s step-end infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
     .footer-copy { margin-top: 18px; font-size: 14px; letter-spacing: 0.08em; color: var(--text-muted); }
 
@@ -336,7 +335,7 @@
       <li><a href="contact.html">Contact</a></li>
     </ul>
   </div>
-  <div class="footer-name" id="footer-name">Marcelo Gomes<span class="cur">_</span></div>
+  <div class="footer-name" id="footer-name">Marcelo Gomes</div>
   <p class="footer-copy" id="footer-copy">Marcelo Gomes © 2026 · Europe</p>
 </footer>
 
@@ -414,7 +413,7 @@ function applySettings() {
   el('social-linkedin').href    = settings.linkedin  || '#';
   el('social-instagram').href   = settings.instagram || '#';
   el('social-youtube').href     = settings.youtube   || '#';
-  el('footer-name').innerHTML   = settings.name + '<span class="cur">_</span>';
+  el('footer-name').textContent = settings.name;
   el('footer-copy').textContent = settings.copy;
 }
 
