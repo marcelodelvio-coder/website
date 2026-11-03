@@ -692,7 +692,6 @@
     .sf-track-wrap {
       display: flex;
       overflow-x: scroll;
-      scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       gap: 18px;
       padding: 28px calc(50vw - 155px);
@@ -701,7 +700,6 @@
     .sf-track-wrap::-webkit-scrollbar { display: none; }
 
     .sf-card {
-      scroll-snap-align: center;
       flex-shrink: 0;
       width: 310px;
       aspect-ratio: 9/16;
@@ -715,11 +713,12 @@
       opacity: 0.55;
       transform: scale(0.82);
     }
+    .sf-card:focus-visible { outline: 2px solid #fff; outline-offset: -6px; }
     .sf-card img {
       width: 100%; height: 100%; object-fit: cover; display: block;
       position: absolute; inset: 0;
     }
-    /* YouTube preview iframe — injected by JS when card is centered */
+    /* YouTube preview iframe — injected by JS when card is clicked */
     .sf-yt-preview {
       position: absolute; inset: 0; z-index: 1;
       opacity: 0; transition: opacity 0.4s;
@@ -733,19 +732,21 @@
       background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
       pointer-events: none;
     }
-    /* Play icon — visible on centered card when video isn't loaded yet */
+    /* Play icon — shows every card can be clicked, hidden once its video plays */
     .sf-play {
       position: absolute; top: 50%; left: 50%; z-index: 4;
       transform: translate(-50%, -50%);
       width: 54px; height: 54px; border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.4);
       display: flex; align-items: center; justify-content: center;
-      color: #fff; opacity: 0;
-      transition: opacity 0.3s;
+      color: #fff;
+      transition: opacity 0.3s, transform 0.2s;
       pointer-events: none;
     }
-    .sf-card.sf-active .sf-play { opacity: 1; }
-    .sf-card.sf-active.sf-playing .sf-play { opacity: 0; }
+    .sf-card:hover .sf-play { transform: translate(-50%, -50%) scale(1.12); border-color: #fff; }
+    .sf-card:active .sf-play { transform: translate(-50%, -50%) scale(0.94); }
+    .sf-card.sf-playing .sf-play { opacity: 0; }
     .sf-play svg { width: 18px; height: 18px; margin-left: 3px; }
     /* Category badge */
     .sf-badge {
@@ -982,8 +983,8 @@
       <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
     </div>
 
-    <div class="sf-card" data-ytid="nM0qx26sFtc">
-      <img src="https://img.youtube.com/vi/nM0qx26sFtc/maxresdefault.jpg" alt="Short Form" loading="lazy">
+    <div class="sf-card" data-ytid="5z9Yph410tE">
+      <img src="https://img.youtube.com/vi/5z9Yph410tE/maxresdefault.jpg" alt="Short Form" loading="lazy">
       <div class="sf-yt-preview"></div>
       <span class="sf-badge">Short Form</span>
       <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
@@ -1003,15 +1004,29 @@
       <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
     </div>
 
-    <div class="sf-card" data-ytid="9zH5QaouH64">
-      <img src="https://img.youtube.com/vi/9zH5QaouH64/maxresdefault.jpg" alt="Short Form" loading="lazy">
+    <div class="sf-card" data-ytid="SYDHVBh4H6U">
+      <img src="https://img.youtube.com/vi/SYDHVBh4H6U/maxresdefault.jpg" alt="Short Form" loading="lazy">
       <div class="sf-yt-preview"></div>
       <span class="sf-badge">Short Form</span>
       <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
     </div>
 
-    <div class="sf-card" data-ytid="MqEgUklreck">
-      <img src="https://img.youtube.com/vi/MqEgUklreck/maxresdefault.jpg" alt="Short Form" loading="lazy">
+    <div class="sf-card" data-ytid="V_NDP-KF-Pk">
+      <img src="https://img.youtube.com/vi/V_NDP-KF-Pk/maxresdefault.jpg" alt="Short Form" loading="lazy">
+      <div class="sf-yt-preview"></div>
+      <span class="sf-badge">Short Form</span>
+      <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
+    </div>
+
+    <div class="sf-card" data-ytid="N23ShK1NS70">
+      <img src="https://img.youtube.com/vi/N23ShK1NS70/maxresdefault.jpg" alt="Short Form" loading="lazy">
+      <div class="sf-yt-preview"></div>
+      <span class="sf-badge">Short Form</span>
+      <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
+    </div>
+
+    <div class="sf-card" data-ytid="sSZDhNJkuoY">
+      <img src="https://img.youtube.com/vi/sSZDhNJkuoY/maxresdefault.jpg" alt="Short Form" loading="lazy">
       <div class="sf-yt-preview"></div>
       <span class="sf-badge">Short Form</span>
       <div class="sf-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
@@ -1604,7 +1619,32 @@ function initSFScroll() {
   const cards = [...wrap.querySelectorAll('.sf-card')];
   if (!cards.length) return;
 
-  let snapTimer, activeCard = null;
+  const DRIFT_SPEED = 50;       // px per second
+  const DRIFT_RESUME_MS = 2500; // wait after a manual swipe before moving again
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let activeCard = null, centering = false;
+  let sectionVisible = false, touching = false, swiped = false, keyboardFocus = false;
+  let driftPos = null, driftVel = 0, lastFrame = 0, resumeTimer;
+
+  /* Copies of the full set on both sides make the loop seamless */
+  const makeClone = (card, i) => {
+    const clone = card.cloneNode(true);
+    clone.dataset.sfIndex = i;
+    clone.setAttribute('aria-hidden', 'true');
+    return clone;
+  };
+  cards.forEach((card, i) => {
+    wrap.insertBefore(makeClone(card, i), cards[0]);
+    wrap.appendChild(makeClone(card, i));
+    card.dataset.sfIndex = i;
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', 'Play video');
+  });
+  const allCards = [...wrap.querySelectorAll('.sf-card')];
+  const setWidth = () => allCards[allCards.indexOf(cards[0]) + cards.length].offsetLeft - cards[0].offsetLeft;
+  const centeredLeft = (card) => card.offsetLeft - (wrap.clientWidth / 2 - card.offsetWidth / 2);
 
   /* Add tap-to-unmute button to each card via JS */
   cards.forEach(card => {
@@ -1624,7 +1664,7 @@ function initSFScroll() {
   const getClosest = () => {
     const wrapCenter = wrap.scrollLeft + wrap.clientWidth / 2;
     let closest = null, minDist = Infinity;
-    cards.forEach(card => {
+    allCards.forEach(card => {
       const dist = Math.abs((card.offsetLeft + card.offsetWidth / 2) - wrapCenter);
       if (dist < minDist) { minDist = dist; closest = card; }
     });
@@ -1635,7 +1675,7 @@ function initSFScroll() {
   const updateScales = () => {
     const wrapCenter = wrap.scrollLeft + wrap.clientWidth / 2;
     const range = wrap.clientWidth * 0.7;
-    cards.forEach(card => {
+    allCards.forEach(card => {
       const dist  = Math.abs((card.offsetLeft + card.offsetWidth / 2) - wrapCenter);
       const ratio = Math.max(0, 1 - dist / range);
       card.style.transform  = `scale(${(0.82 + 0.18 * ratio).toFixed(4)})`;
@@ -1653,114 +1693,138 @@ function initSFScroll() {
     } catch (e) {}
   };
 
-  /* Load iframe into a card (muted, no autoplay) — for preloading adjacent cards */
-  const preloadCard = (card) => {
-    if (!card) return;
-    const preview = card.querySelector('.sf-yt-preview');
-    if (!preview || preview.querySelector('iframe')) return; // already loaded
-    const ytId = card.dataset.ytid;
-    if (!ytId) return;
-    preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=0&mute=1&controls=0&rel=0&modestbranding=1" allow="autoplay" frameborder="0" loading="lazy"></iframe>`;
-  };
-
-  const activateCenter = () => {
-    const newActive = getClosest();
-    if (newActive === activeCard) return;
-
-    /* Pause + hide previous card (keep iframe alive for instant re-play) */
-    if (activeCard) {
-      activeCard.classList.remove('sf-active', 'sf-playing');
-      const prevPreview = activeCard.querySelector('.sf-yt-preview');
-      if (prevPreview) {
-        prevPreview.classList.remove('visible');
-        sendCmd(activeCard, 'pauseVideo');
-      }
-    }
-
-    activeCard = newActive;
-    wrap._activeCard = activeCard;
+  /* Pause + hide the playing card (keep iframe alive for instant re-play) */
+  const stopPlayback = () => {
     if (!activeCard) return;
-
-    activeCard.classList.add('sf-active');
-    const preview = activeCard.querySelector('.sf-yt-preview');
-    if (preview) {
-      const existingIframe = preview.querySelector('iframe');
-      if (existingIframe) {
-        /* Already loaded — just resume playback (instant, no reload!) */
-        sendCmd(activeCard, 'playVideo');
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          preview.classList.add('visible');
-          activeCard.classList.add('sf-playing');
-        }));
-      } else {
-        /* First time loading this card — inject muted iframe (autoplay allowed muted) */
-        const ytId = activeCard.dataset.ytid;
-        if (ytId) {
-          preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&mute=1&controls=0&rel=0&modestbranding=1" allow="autoplay" frameborder="0"></iframe>`;
-          requestAnimationFrame(() => requestAnimationFrame(() => {
-            preview.classList.add('visible');
-            activeCard.classList.add('sf-playing');
-          }));
-        }
-      }
-    }
-
-    /* Preload neighbours so they're ready instantly when scrolled to */
-    const idx = cards.indexOf(activeCard);
-    preloadCard(cards[idx - 1]);
-    preloadCard(cards[idx + 1]);
+    activeCard.classList.remove('sf-active', 'sf-playing');
+    activeCard.querySelector('.sf-yt-preview')?.classList.remove('visible');
+    sendCmd(activeCard, 'pauseVideo');
+    activeCard = null;
   };
 
-  /* Pause all iframes without destroying them */
-  const stopAll = () => {
-    cards.forEach(card => {
-      card.classList.remove('sf-active', 'sf-playing');
-      const preview = card.querySelector('.sf-yt-preview');
-      if (preview) {
-        sendCmd(card, 'pauseVideo');
-        preview.classList.remove('visible');
-      }
-    });
-    activeCard = null;
+  /* Center a card and play it. Only the real cards play, so a clicked copy hands over to its original */
+  const playCard = (clicked) => {
+    stopPlayback();
+    const card = cards[clicked.dataset.sfIndex];
+    wrap.scrollLeft += card.offsetLeft - clicked.offsetLeft;
+    updateScales();
+
+    activeCard = card;
+    centering = true;
+    card.classList.add('sf-active');
+    wrap.scrollTo({ left: centeredLeft(card), behavior: reducedMotion ? 'auto' : 'smooth' });
+
+    const preview = card.querySelector('.sf-yt-preview');
+    if (preview.querySelector('iframe')) {
+      /* Already loaded — just resume playback (instant, no reload!) */
+      sendCmd(card, 'playVideo');
+    } else {
+      /* First time loading this card — inject muted iframe (autoplay allowed muted) */
+      preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${card.dataset.ytid}?enablejsapi=1&autoplay=1&mute=1&controls=0&rel=0&modestbranding=1" allow="autoplay" frameborder="0"></iframe>`;
+      /* YouTube only reports when a video ends after this handshake */
+      const iframe = preview.querySelector('iframe');
+      iframe.addEventListener('load', () => {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: card.dataset.ytid, channel: 'widget' }), '*');
+      });
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (activeCard !== card) return;
+      preview.classList.add('visible');
+      card.classList.add('sf-playing');
+    }));
+  };
+
+  /* Click a card to play it, click it again to stop */
+  wrap.addEventListener('click', (e) => {
+    const card = e.target.closest('.sf-card');
+    if (!card) return;
+    if (card === activeCard) stopPlayback();
+    else playCard(card);
+  });
+  wrap.addEventListener('keydown', (e) => {
+    if (e.target.classList.contains('sf-card') && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
+  /* A manual swipe holds the drift for a moment */
+  const holdDrift = () => {
+    swiped = true;
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(() => { swiped = false; }, DRIFT_RESUME_MS);
+  };
+  wrap.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    centering = false;
+    holdDrift();
+  }, { passive: true });
+  wrap.addEventListener('touchstart', () => { touching = true; centering = false; }, { passive: true });
+  ['touchend', 'touchcancel'].forEach(type => {
+    wrap.addEventListener(type, () => { touching = false; holdDrift(); }, { passive: true });
+  });
+  wrap.addEventListener('focusin', (e) => { keyboardFocus = e.target.matches(':focus-visible'); });
+  wrap.addEventListener('focusout', () => { keyboardFocus = false; });
+
+  /* Jump between the copies when the center leaves the real set — the view looks identical */
+  const keepInLoop = () => {
+    const start = centeredLeft(cards[0]);
+    const width = setWidth();
+    const shift = wrap.scrollLeft >= start + width ? -width : wrap.scrollLeft < start ? width : 0;
+    if (!shift) return;
+    wrap.scrollLeft += shift;
+    if (driftPos !== null) driftPos += shift;
   };
 
   wrap.addEventListener('scroll', () => {
     updateScales();
-    clearTimeout(snapTimer);
-    snapTimer = setTimeout(activateCenter, 140);
+    if (!activeCard) keepInLoop();
+    else if (!centering && getClosest() !== activeCard) {
+      /* Swiped away from the playing video */
+      stopPlayback();
+      holdDrift();
+    }
   }, { passive: true });
 
-  wrap.addEventListener('scrollend', activateCenter);
+  /* Constant drift, so visitors can see there's a whole list of videos */
+  const drift = (now) => {
+    requestAnimationFrame(drift);
+    const dt = Math.min((now - lastFrame) / 1000, 0.1);
+    lastFrame = now;
+    if (!sectionVisible || activeCard || touching || swiped || keyboardFocus) {
+      driftPos = null;
+      driftVel = 0;
+      return;
+    }
+    if (driftPos === null) driftPos = wrap.scrollLeft;
+    driftVel += (DRIFT_SPEED - driftVel) * Math.min(dt * 2, 1);
+    driftPos += driftVel * dt;
+    wrap.scrollLeft = driftPos;
+  };
 
-  /* Stop video when the section scrolls out of the viewport */
+  /* Drift only while on screen, and stop video when the section scrolls out of the viewport */
   const section = document.getElementById('shortform');
   if (section) {
     new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) stopAll();
+      sectionVisible = entries[0].isIntersecting;
+      if (!sectionVisible) stopPlayback();
     }, { threshold: 0.05 }).observe(section);
   }
 
   /* Start with 4th card centered — shows cards 1–3 to the left, no autoplay on load */
   const startCard = cards[3] || cards[0];
-  if (startCard) wrap.scrollLeft = startCard.offsetLeft - (wrap.clientWidth / 2 - startCard.offsetWidth / 2);
+  if (startCard) wrap.scrollLeft = centeredLeft(startCard);
   requestAnimationFrame(() => updateScales());
+  if (!reducedMotion) requestAnimationFrame((now) => { lastFrame = now; drift(now); });
 
-  /* Auto-advance: when active video ends, scroll to next card */
-  if (!wrap._autoAdvanceAdded) {
-    wrap._autoAdvanceAdded = true;
-    window.addEventListener('message', (e) => {
-      if (!wrap._activeCard) return;
-      try {
-        const data = JSON.parse(e.data);
-        if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
-          const allCards = [...wrap.querySelectorAll('.sf-card')];
-          const idx = allCards.indexOf(wrap._activeCard);
-          const next = allCards[idx + 1];
-          if (next) next.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
-      } catch (_) {}
-    });
-  }
+  /* When the playing video ends, start drifting through the list again */
+  window.addEventListener('message', (e) => {
+    if (!activeCard || e.source !== activeCard.querySelector('iframe')?.contentWindow) return;
+    try {
+      const data = JSON.parse(e.data);
+      if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) stopPlayback();
+    } catch (_) {}
+  });
 }
 
 /* Short-form CRUD */
